@@ -9,7 +9,7 @@ CREATE SEQUENCE usuario_id_seq
   START 1
   CACHE 1;
 
-DROP TABLE IF EXISTS "usuario";
+DROP TABLE IF EXISTS "usuarios";
 
 CREATE TABLE "usuarios"(
     "id" int4 DEFAULT nextval('usuario_id_seq'::regclass) NOT NULL,

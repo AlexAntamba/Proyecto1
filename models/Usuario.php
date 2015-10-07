@@ -1,109 +1,120 @@
 <?php
-require_once("../db/Database.php");
-require_once("../interfaces/IUser.php");
+require_once("../util/Conexion.php");
+require_once("../interfaces/IUsuario.php");
 /**
  * Implementacion del modelo Usuario
  */
-class Usuario extends IUsuario
-{
-    private $conexion;
+class Usuario {
+
+    //Definición de atibutos
     private $id;
     private $username;
     private $password;
+    private $fechaCreacion;
 
-    function __construct(Database $db)
-    {
-        $this->conexion = new $db;
+    const TABLA = 'usuarios';
+
+    function __construct($id=nul, $username, $password){
+        $this->id = $id;
+        $this->username = $username;
+        $this->password = $password;
     }
 
-    public function setId($id)
-    {
+    public function setId($id){
         $this->id = $id;
     }
 
-    public function setUsername($username)
-    {
+    public function setUsername($username) {
         $this->username = $username;
     }
 
-    public function setPassword($password)
-    {
+    public function setPassword($password) {
         $this->password = $password;
+    }
+
+    public function getId(){
+        return $this->id;
+    }
+
+    public function getUsername() {
+        return $this->username;
+    }
+
+    public function getPassword() {
+        return $this->password;
+    }
+    
+    public function fechaCreacion() {
+        return $this->fechaCreacion;
     }
 
     /*
      insertamos usuarios en una tabla con postgreSql
     */
-    public function save()
-    {
+    public function guardar() {
+        $conexion = new Conexion();
         try{
-            //Prepara el query
-            $query = $this->conexion->prepare('INSERT INTO usuarios(username, password) values (?,?)');
+            if($this->id) /*Modifica*/{
+                $query = $conexion->prepare('UPDATE '. self::TABLA .' SET username = ?, password = ? WHERE id = ?');
+                $query->bindParam(1, $this->username, PDO::PARAM_STR);
+                $query->bindParam(2, $this->password, PDO::PARAM_STR);
+                $query->bindParam(3, $this->id, PDO::PARAM_INT);
 
-            //Asigna valores
-            $query->bindParam(1,$this->username);
-            $query->bindParam(2,$this->password);
+                $query->execute();
+            }else /*Inserta*/ {
+                //Prepara el query
+                $query = $conexion->prepare('INSERT INTO '. self::TABLA .'(username, password) values (?,?)');
 
-            //Ejecuta query
-            $query->execute();
+                //Asigna valores
+                $query->bindParam(1,$this->username);
+                $query->bindParam(2,$this->password);
 
-            //Cierra conexion
-            $this->conexion->close();
-        }
-        catch(PDOException $e)
-        {
+                //Ejecuta query
+                $query->execute();
+            }
+
+        } catch(PDOException $e){
 	        echo  $e->getMessage();
 	    }
-    }
-
-    public function update()
-    {
-        try{
-            $query = $this->con->prepare('UPDATE usuarios SET username = ?, password = ? WHERE id = ?');
-			$query->bindParam(1, $this->username, PDO::PARAM_STR);
-			$query->bindParam(2, $this->password, PDO::PARAM_STR);
-            $query->bindParam(3, $this->id, PDO::PARAM_INT);
-
-            $query->execute();
-            $this->conexion->close();
-        }
-        catch(PDOException $e)
-        {
-	        echo  $e->getMessage();
-	    }
+        //Cierra conexion
+        $conexion = null;
     }
 
     //obtenemos usuarios de una tabla con postgreSql
-    public function get()
-    {
+    public static function busarPorId() {
         try{
-            if(is_int($this->id))
-            {
-                $query = $this->conexion->prepare('SELECT * FROM usuarios WHERE id = ?');
-                $query->bindParam(1, $this->id, PDO:: PARAM_INT);
+            $conexion = new Conexion();
+            $consulta = $conexion->prepare('SELECT * FROM '. self::TABLA .' WHERE id = ?');
+            $consulta->bindParam(1, $this->id, PDO:: PARAM_INT);
 
-                $query->execute();
-                $this->conexion->close();
+            $consulta->execute();
 
-                return $query->fetch(PDO::FETCH_OBJ);
+            //$registro = $consulta->fetch();
+            $registro = $consulta->fetch(PDO::FETCH_OBJ);
+
+            if($registro){
+                return new self($registro['username'], $registro['password'], $id);
+            }else{
+                return false;
             }
-            else
-            {
-                $query = $this->con->prepare('SELECT * FROM usuarios');
-                $query->execute();
-                $this->con->close();
-
-                return $query->fetchAll(PDO::FETCH_OBJ);
-            }
-        }
-        catch(PDOException $e)
-        {
+        }catch(PDOException $e){
 	        echo  $e->getMessage();
 	    }
     }
 
-    public function delete()
-    {
+    public static function recuperarTodos(){
+       $conexion = new Conexion();
+       //echo 'SELECT id, username, password FROM ' . self::TABLA . ' ORDER BY id';
+       $consulta = $conexion->prepare('SELECT id, username, password, fecha_creacion as fechaCreacion FROM ' . self::TABLA . ' ORDER BY id');
+
+       $consulta->execute();
+       $registros = $consulta->fetchAll(PDO::FETCH_OBJ);
+       //$registros = $consulta->fetchAll();
+
+       return $registros;
+    }
+
+    public function delete(){
         try{
             $query = $this->conexion->prepare('DELETE FROM usuarios WHERE id = ?');
             $query->bindParam(1,$this->id, PDO::PARAM_INT);
@@ -111,20 +122,12 @@ class Usuario extends IUsuario
             $this->conexion->close();
 
             return true;
-        }
-        catch(PDOException $e)
-        {
+        }catch(PDOException $e){
 	        echo  $e->getMessage();
 	    }
     }
 
-    public function baseurl()
-    {
-        return stripos($_SERVER['SERVER_PROTOCOL'],'https') === true ? 'https://' : 'http://' . $_SERVER['HTTP_HOST'] . "/php/crudpgsql/";
-    }
-
-    public function checkUser($usuario)
-    {
+    public function checkUser($usuario) {
         if(! $usuario){
             header("Location:".Usuario::baseurl()."app/list.php");
         }
