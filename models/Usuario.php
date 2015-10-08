@@ -1,6 +1,5 @@
 <?php
 require_once("../util/Conexion.php");
-require_once("../interfaces/IUsuario.php");
 /**
  * Implementacion del modelo Usuario
  */

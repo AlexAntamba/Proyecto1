@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteBase /crud-php-pgsql/
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+#RewriteRule ^(.*)$ app/index.php/$1 [L
+
+RewriteRule ^(.*)$ index.php/$1 [PT,L]
