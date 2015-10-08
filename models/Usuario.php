@@ -43,7 +43,7 @@ class Usuario {
     public function getPassword() {
         return $this->password;
     }
-    
+
     public function fechaCreacion() {
         return $this->fechaCreacion;
     }
@@ -114,7 +114,7 @@ class Usuario {
        return $registros;
     }
 
-    public function delete(){
+    public function eliminar(){
         try{
             $query = $this->conexion->prepare('DELETE FROM usuarios WHERE id = ?');
             $query->bindParam(1,$this->id, PDO::PARAM_INT);
