@@ -1,5 +1,6 @@
 <?php
 require_once("../util/Conexion.php");
+require_once "../util/Configuracion.php";
 /**
  * Implementacion del modelo Usuario
  */
@@ -13,14 +14,16 @@ class Usuario {
 
     const TABLA = 'usuarios';
 
-    function __construct($id=nul, $username, $password){
-        $this->id = $id;
-        $this->username = $username;
-        $this->password = $password;
+    function __construct(){//$id=nul, $username, $password
+        $this->id = null;
+        $this->username = null;
+        $this->password = null;
+        $this->fechaCreacion = new DateTime();
     }
 
     public function setId($id){
         $this->id = $id;
+        //echo $this->id;
     }
 
     public function setUsername($username) {
@@ -80,8 +83,9 @@ class Usuario {
     }
 
     //obtenemos usuarios de una tabla con postgreSql
-    public static function busarPorId() {
+    public function busarPorId() {
         try{
+            //echo $this->id;
             $conexion = new Conexion();
             $consulta = $conexion->prepare('SELECT * FROM '. self::TABLA .' WHERE id = ?');
             $consulta->bindParam(1, $this->id, PDO:: PARAM_INT);
@@ -92,7 +96,12 @@ class Usuario {
             $registro = $consulta->fetch(PDO::FETCH_OBJ);
 
             if($registro){
-                return new self($registro['username'], $registro['password'], $id);
+                /*$usuario =  new self();
+                $usuario->setId($this->id);
+                $usuario->setUsername($registro['username']);
+                $usuario->setPassword( $registro['password']);*/
+                return $registro;
+
             }else{
                 return false;
             }
@@ -114,11 +123,11 @@ class Usuario {
     }
 
     public function eliminar(){
+        $conexion = new Conexion();
         try{
-            $query = $this->conexion->prepare('DELETE FROM usuarios WHERE id = ?');
+            $query = $conexion->prepare('DELETE FROM '. self::TABLA .' WHERE id = ?');
             $query->bindParam(1,$this->id, PDO::PARAM_INT);
             $query->execute();
-            $this->conexion->close();
 
             return true;
         }catch(PDOException $e){
@@ -126,9 +135,9 @@ class Usuario {
 	    }
     }
 
-    public function checkUser($usuario) {
+    public function verificarkUsuario($usuario) {
         if(! $usuario){
-            header("Location:".Usuario::baseurl()."app/list.php");
+            header("Location:".Configuracion::baseurl()."app/listar.php");
         }
     }
 }
