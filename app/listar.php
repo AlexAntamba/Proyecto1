@@ -20,8 +20,8 @@
 
 
                 <div class="col-lg-1 pull-right" style="margin-bottom: 10px">
-                    <a class="btn btn-info" href="<?php echo Configuracion::baseurl() ?>app/add.php">
-                        <i class="icon-plus icon-white"></i> Adicionar Usuario                        
+                    <a class="btn btn-info" href="<?php echo Configuracion::baseurl() ?>app/crear.php">
+                        <i class="icon-plus icon-white"></i> Adicionar Usuario
                     </a>
                 </div>
 
